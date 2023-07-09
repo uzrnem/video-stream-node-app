@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Streaming With Node</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.3/css/bootstrap.min.css" integrity="sha512-oc9+XSs1H243/FRN9Rw62Fn8EtxjEYWHXRvjS43YtueEewbS6ObfXcJNyohjHqVKFPoXXUxwc+q1K7Dee6vv9g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.3/js/bootstrap.min.js" integrity="sha512-8qmis31OQi6hIRgvkht0s6mCOittjMa9GMqtK9hes5iEQBQE/Ca6yGE5FsW36vyipGoWQswBj/QBm2JR086Rkw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.min.js" integrity="sha512-BKbSR+cfyxLdMAsE0naLReFSLg8/pjbgfxHh/k/kUC82Hy7r6HtR5hLhobaln2gcTvzkyyehrdREdjpsQwy2Jw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js" integrity="sha512-uMtXmF28A2Ab/JJO2t/vYhlaa/3ahUOgj1Zf27M5rOo8/+fcTUVH0/E0ll68njmjrLqOBjXM3V9NiPFL5ywWPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    body {
+      width: 98%;
+      height: 95vh;
+      background-color: rgb(14, 14, 14);
+    }
+    a {
+      cursor: pointer;
+    }
+    #videoPlayer {
+      max-width: 95% !important;
+      max-height: 95% !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="vue-app">
+    <div class="row">
+      <div class="col-12" style="position: relative">
+        <div style="position: absolute; right: 5px; top: 5px; z-index: 1;">
+          <a class="btn" v-if="!sideBar" @click="sideBar = true">Show</a>
+          <a class="btn btn-warning" v-if="sideBar" @click="sideBar = false">Hide</a>
+        </div>
+      </div>
+      <div :class="sideBar? 'col-8' : 'col-12'">
+        <video controls muted autoPlay crossOrigin="anonymous" id="videoPlayer" v-if="currentFile != ''">
+            <source v-if="currentFile != ''" :src="currentFile" type="video/mp4">
+            <track label="English" kind="captions" srcLang="en" :src="currentFile" default>
+        </video>
+
+        <!-- video id="videoPlayer" v-if="currentFile != ''"
+          controls autoplay muted="false">
+          <source v-if="currentFile != ''" :src="currentFile" :source-old="'/video?path=' + currentFile" type="video/mp4" />
+        </video -->
+      </div>
+      <div class="col-4 bg-light" height="100%" v-if="sideBar">
+        <template v-for="fls, directory in files">
+          <a @click="currentDir = directory">{{directory}}</a>
+          <ul v-if="currentDir == directory" style="margin-bottom: 0">
+            <template v-for="path, file in fls">
+              <li><a @click="updateFilePath(directory, file)"
+                :class="currentDir == directory && currentFile == (directory + '/' + file) ? 'text-danger' : ''">{{file}}</a></li>
+            </template>
+          </ul>
+          <br />
+        </template>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  var app = new Vue({
+    el: '#vue-app',
+    data: {
+      files: [],
+      currentDir: '',
+      currentFile: '',
+      sideBar: true
+    },
+    created() {
+        console.debug('Component has been created!');
+    },
+    methods: {
+      getAccounts: function() {
+        axios.get('/files')
+        .then((response) => {
+          this.files = response.data;
+          console.log(JSON.stringify(this.files))
+        });
+      },
+      updateFilePath(directory, file) {
+        this.currentFile = '';
+        this.$forceUpdate();
+        setTimeout(() => {
+          this.currentFile = directory + '/' + file;
+          this.$forceUpdate();
+        }, 100);
+      }
+    },
+    mounted() {
+      console.debug('Component has been Mounted!');
+      this.getAccounts();
+    }
+  });
+</script>
+</html>

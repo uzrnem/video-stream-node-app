@@ -1,0 +1,13 @@
+#docker-compose -f docker-compose.yml up -d
+version: '3.7'
+
+services:
+  youtube:
+    image: node:20-alpine3.18
+    container_name: youtube
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - 3001:3001
+    command: tail -f /dev/null
